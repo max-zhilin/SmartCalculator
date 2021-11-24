@@ -7,16 +7,21 @@ fun main() {
     val scanner = Scanner(System.`in`)
     do {
         val line = scanner.nextLine()
-        //println("'$line'")
         when (line) {
             "/help" -> println("The program calculates the sum and difference of numbers")
             "/exit" -> println("Bye!")
-            else -> Scanner(line)
-                    .tokens()
-                    //.map(String::toInt)
-                    .collect(Collectors.toList())
-                    .reduceWithSignOrNull { sum, sign, it -> sum + sign * it }
-                    ?.let { println(it) }
+            else -> {
+                if (line.isNotEmpty() && line.first() == '/') println("Unknown command")
+                else try {
+                    Scanner(line)
+                        .tokens()
+                        .collect(Collectors.toList())
+                        .reduceWithSignOrNull { sum, sign, it -> sum + sign * it }
+                        ?.let { println(it) }
+                } catch (e: Exception) {
+                    println("Invalid expression")
+                }
+            }
         }
     } while(line != "/exit")
 }
@@ -24,12 +29,16 @@ fun main() {
 fun Iterable<String>.reduceWithSignOrNull(operation: (acc: Int, sign: Int, Int) -> Int): Int? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) return null
-    var accumulator: Int = iterator.next().toInt()
+    var accumulator: Int = iterator.next().parseToInt()
     while (iterator.hasNext()) {
         val sign = iterator.next().foldToSign()
-        accumulator = operation(accumulator, sign, iterator.next().toInt())
+        accumulator = operation(accumulator, sign, iterator.next().parseToInt())
     }
     return accumulator
+}
+
+fun String.parseToInt(): Int {
+    return if (first() == '+') substring(1).toInt() else toInt()
 }
 
 fun String.foldToSign(): Int {
