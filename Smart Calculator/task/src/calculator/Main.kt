@@ -36,11 +36,11 @@ fun main() {
 
 class Calculator {
 
-    private val map = mutableMapOf<String, Int>()
+    private val map = mutableMapOf<String, BigInteger>()
 
-    fun evaluateExpression(expression: List<Element>): Int {
+    fun evaluateExpression(expression: List<Element>): BigInteger {
         val iterator = expression.iterator()
-        val stack = Stack<Int>()
+        val stack = Stack<BigInteger>()
 
         try {
             while (iterator.hasNext()) {
@@ -72,20 +72,20 @@ class Calculator {
                 return result
             else throw InvalidExpression()
 
-//        } catch (e: UnknownVariable) {  // only this exception rises as is
-//            throw UnknownVariable()
+        } catch (e: UnknownVariable) {  // only this exception rises as is
+            throw UnknownVariable()
         } catch (e: Exception) {        // all other ones convert to special exception
             throw InvalidExpression()
         }
     }
 
-    private fun eval(identifier: String): Int {
+    private fun eval(identifier: String): BigInteger {
         return if (identifier.matches(Regex("[a-zA-Z]+"))) {
             map[identifier] ?: throw UnknownVariable()
-        } else identifier.toInt()
+        } else identifier.toBigInteger()
     }
 
-    fun assignVariable(identifier: String, value: Int) {
+    fun assignVariable(identifier: String, value: BigInteger) {
         if (!identifier.matches(Regex("[a-zA-Z]+"))) throw InvalidIdentifier()
         map[identifier] = value
     }
@@ -156,6 +156,7 @@ fun tokenize(s: String) : List<Token> {
                         tokens.add(Token(TokenType.NUMBER, buffer))
                     }
                 } while (isDigit)
+                if (c.isLetter()) throw InvalidExpression()
             }
             '+','-' -> {
                 var sign = c.toString()
@@ -186,7 +187,7 @@ fun tokenize(s: String) : List<Token> {
 
 sealed class Element(val priority: Int) {
     class Identifier(val name: String) : Element(0)
-    class Number(val value: Int) : Element(0)
+    class Number(val value: BigInteger) : Element(0)
     object Parenthesis : Element(0)
     object Plus : Element(1)
     object Minus : Element(1)
@@ -206,7 +207,7 @@ class Parser(tokens: List<Token>) {
         while (iterator.hasNext()) {
             val token = iterator.next()
             when(token.type) {
-                TokenType.NUMBER -> list.add(Element.Number(token.value.toInt()))
+                TokenType.NUMBER -> list.add(Element.Number(token.value.toBigInteger()))
                 TokenType.IDENTIFIER -> list.add(Element.Identifier(name = token.value))
                 TokenType.DELIMITER -> {
                     when (token.value) {
@@ -269,6 +270,6 @@ class Parser(tokens: List<Token>) {
     }
 }
 
-fun pow(n: Int, exp: Int): Int {
-    return BigInteger.valueOf(n.toLong()).pow(exp).toInt()
+fun pow(n: BigInteger, exp: BigInteger): BigInteger {
+    return n.pow(exp.toInt())
 }
